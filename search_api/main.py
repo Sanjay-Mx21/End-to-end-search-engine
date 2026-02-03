@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Query
-
+from processing.normalizer import normalize
+from processing.tokenizer import tokenize
 from processing.text_processor import TextProcessor
 from indexing.index_builder import IndexBuilder
 from ranking.tfidf import TFIDFRanker
@@ -17,10 +18,10 @@ ranker = TFIDFRanker(index, num_docs=len(processed_docs))
 
 
 @app.get("/search")
-def search(q: str = Query(..., min_length=1)):
-    query_tokens = q.lower().split()
-
-    ranked_results = ranker.rank(query_tokens)
+def search(q: str = Query(..., min_length=1),top_k: int = Query(5, ge=1, le=20)):
+    normalized_query = normalize(q)
+    query_tokens = tokenize(normalized_query)
+    ranked_results = ranker.rank(query_tokens,top_k=top_k)
 
     results = []
     for doc_id, score in ranked_results:
