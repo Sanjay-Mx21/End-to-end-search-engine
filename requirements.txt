@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+requests
+streamlit
+beautifulsoup4
+lxml
