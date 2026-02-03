@@ -22,15 +22,17 @@ class TextProcessor:
 
             with open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
+
             raw_text = data.get("text") or data.get("content")
 
             if not raw_text:
                 continue   # skip bad / empty docs safely
-            normalized_text = normalize(data["text"])
+
+            normalized_text = normalize(raw_text)  # ✅ FIX
             tokens = tokenize(normalized_text)
 
             processed_docs.append({
-                "url": data["url"],
+                "url": data.get("url", "unknown"),
                 "tokens": tokens
             })
 
