@@ -1,7 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
+
 from crawler.url_manager import URLManager
+from crawler.storage import PageStorage
 
 
 def crawl_single_page(url):
@@ -22,8 +24,8 @@ def crawl_single_page(url):
 
 def crawl_website(seed_url, max_depth=1, max_pages=5):
     url_manager = URLManager(seed_url, max_depth)
+    storage = PageStorage()
 
-    crawled_pages = []
     pages_crawled = 0
 
     while url_manager.has_next() and pages_crawled < max_pages:
@@ -37,10 +39,7 @@ def crawl_website(seed_url, max_depth=1, max_pages=5):
 
             text, links = crawl_single_page(current_url)
 
-            crawled_pages.append({
-                "url": current_url,
-                "text": text
-            })
+            storage.save_page(current_url, text)
 
             url_manager.visited.add(current_url)
             url_manager.add_urls(links, depth)
@@ -50,12 +49,7 @@ def crawl_website(seed_url, max_depth=1, max_pages=5):
         except Exception as e:
             print(f"Failed to crawl {current_url}: {e}")
 
-    return crawled_pages
-
 
 if __name__ == "__main__":
     seed_url = "https://example.com"
-
-    pages = crawl_website(seed_url, max_depth=1, max_pages=5)
-
-    print(f"\nTotal pages crawled: {len(pages)}")
+    crawl_website(seed_url, max_depth=1, max_pages=5)
