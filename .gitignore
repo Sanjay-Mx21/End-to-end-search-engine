@@ -2,4 +2,10 @@ venv/
 __pycache__/
 *.pyc
 .env
+
+# Ignore data by default
 data/
+
+# BUT allow demo corpus for deployment
+!data/raw_pages/
+!data/raw_pages/**
