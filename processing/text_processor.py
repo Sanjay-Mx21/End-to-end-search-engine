@@ -1,20 +1,21 @@
-import json
 import os
+import json
 
 from processing.normalizer import normalize
 from processing.tokenizer import tokenize
 
 
 class TextProcessor:
-    """
-    Orchestrates text normalization and tokenization.
-    """
-
     def __init__(self, data_dir="data/raw_pages"):
         self.data_dir = data_dir
 
     def process_all_pages(self):
         processed_docs = []
+
+        # ✅ PRODUCTION-SAFE CHECK
+        if not os.path.exists(self.data_dir):
+            print(f"[WARN] Data directory not found: {self.data_dir}")
+            return processed_docs
 
         for filename in os.listdir(self.data_dir):
             filepath = os.path.join(self.data_dir, filename)

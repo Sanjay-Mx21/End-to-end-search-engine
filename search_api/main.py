@@ -13,6 +13,9 @@ app = FastAPI(title="Mini Search Engine")
 processor = TextProcessor()
 processed_docs = processor.process_all_pages()
 
+if not processed_docs:
+    print("[WARN] No documents found. Search index will be empty.")
+
 builder = IndexBuilder()
 index = builder.build(processed_docs)
 
