@@ -1,44 +1,61 @@
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
+from crawler.url_manager import URLManager
 
 
 def crawl_single_page(url):
-    """
-    Fetches a single web page and extracts:
-    1. Visible text
-    2. All absolute links on the page
-    """
-
-    print(f"Crawling URL: {url}")
-
-    # 1. Send HTTP request
     response = requests.get(url, timeout=10)
-    response.raise_for_status()  # fails fast if request breaks
+    response.raise_for_status()
 
-    # 2. Parse HTML
     soup = BeautifulSoup(response.text, "lxml")
 
-    # 3. Extract visible text
-    page_text = soup.get_text(separator=" ", strip=True)
+    text = soup.get_text(separator=" ", strip=True)
 
-    # 4. Extract links
     links = set()
     for tag in soup.find_all("a", href=True):
         absolute_url = urljoin(url, tag["href"])
         links.add(absolute_url)
 
-    return page_text, links
+    return text, links
+
+
+def crawl_website(seed_url, max_depth=1, max_pages=5):
+    url_manager = URLManager(seed_url, max_depth)
+
+    crawled_pages = []
+    pages_crawled = 0
+
+    while url_manager.has_next() and pages_crawled < max_pages:
+        current_url, depth = url_manager.get_next()
+
+        if current_url in url_manager.visited:
+            continue
+
+        try:
+            print(f"Crawling: {current_url} (depth={depth})")
+
+            text, links = crawl_single_page(current_url)
+
+            crawled_pages.append({
+                "url": current_url,
+                "text": text
+            })
+
+            url_manager.visited.add(current_url)
+            url_manager.add_urls(links, depth)
+
+            pages_crawled += 1
+
+        except Exception as e:
+            print(f"Failed to crawl {current_url}: {e}")
+
+    return crawled_pages
 
 
 if __name__ == "__main__":
     seed_url = "https://example.com"
 
-    text, links = crawl_single_page(seed_url)
+    pages = crawl_website(seed_url, max_depth=1, max_pages=5)
 
-    print("\n--- PAGE TEXT (first 300 chars) ---")
-    print(text[:300])
-
-    print("\n--- LINKS FOUND ---")
-    for link in list(links)[:10]:
-        print(link)
+    print(f"\nTotal pages crawled: {len(pages)}")
